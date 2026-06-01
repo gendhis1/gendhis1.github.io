@@ -1,1 +1,600 @@
-<h1>Hujan di bulan Juni</h1>
+<h1><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eggs & Earnings — Global Comparison</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0e0d0b;
+  --surface: #161510;
+  --surface2: #1e1c17;
+  --border: rgba(255,255,255,0.07);
+  --text: #f0ead6;
+  --muted: #7a7362;
+  --accent: #e8c84a;
+
+  /* Continent colors */
+  --c-europe:   #5b8dee;
+  --c-americas: #e86c4a;
+  --c-asia:     #5dc9a0;
+  --c-africa:   #e8b84a;
+  --c-oceania:  #c47de8;
+  --c-mideast:  #e87a9a;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Syne', sans-serif;
+  min-height: 100vh;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+/* ── Header ── */
+header {
+  padding: 2.5rem 3rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.header-left h1 {
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--text);
+}
+.header-left h1 span { color: var(--accent); }
+.header-left p {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  letter-spacing: 0.04em;
+}
+
+/* ── Controls ── */
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  padding: 1.2rem 3rem;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+
+.ctrl-group { display: flex; flex-direction: column; gap: 0.4rem; }
+.ctrl-label {
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+}
+
+.sort-tabs { display: flex; gap: 4px; }
+.sort-btn {
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Syne', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.sort-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+.sort-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0e0d0b;
+}
+
+.metric-tabs { display: flex; gap: 4px; }
+.metric-btn {
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: 'Syne', sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.18s;
+  white-space: nowrap;
+}
+.metric-btn:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+.metric-btn.active {
+  background: var(--surface2);
+  border-color: rgba(255,255,255,0.2);
+  color: var(--text);
+}
+
+.continent-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  margin-left: auto;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color 0.15s;
+  user-select: none;
+}
+.legend-item:hover { color: var(--text); }
+.legend-item.muted-cont { opacity: 0.3; }
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ── Chart area ── */
+.chart-wrap {
+  padding: 1.5rem 3rem 1rem;
+  position: relative;
+}
+
+.chart-scroll {
+  overflow-x: auto;
+  overflow-y: visible;
+  padding-bottom: 0.5rem;
+}
+
+#chartCanvas {
+  display: block;
+}
+
+/* ── Tooltip ── */
+#tooltip {
+  position: fixed;
+  pointer-events: none;
+  background: #1e1c17;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 0.78rem;
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.12s;
+  max-width: 220px;
+  font-family: 'DM Mono', monospace;
+  line-height: 1.6;
+}
+#tooltip.visible { opacity: 1; }
+#tooltip .tt-country { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.88rem; margin-bottom: 4px; }
+#tooltip .tt-row { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); }
+#tooltip .tt-row span:last-child { color: var(--text); }
+#tooltip .tt-power { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); color: var(--accent); font-weight: 500; }
+
+/* ── Footer ── */
+footer {
+  padding: 1rem 3rem 2rem;
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-family: 'DM Mono', monospace;
+  border-top: 1px solid var(--border);
+  margin-top: 1rem;
+}
+
+@media (max-width: 640px) {
+  header, .controls, .chart-wrap, footer { padding-left: 1.2rem; padding-right: 1.2rem; }
+  .continent-legend { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Eggs &amp; <span>Earnings</span></h1>
+    <p>79 countries · Jan 2026 · GlobalProductPrices.com &amp; WageIndicator</p>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="ctrl-group">
+    <div class="ctrl-label">Sort by</div>
+    <div class="sort-tabs">
+      <button class="sort-btn active" data-sort="power">Egg buying power</button>
+      <button class="sort-btn" data-sort="wage">Min. wage</button>
+      <button class="sort-btn" data-sort="egg">Egg price</button>
+    </div>
+  </div>
+  <div class="ctrl-group">
+    <div class="ctrl-label">Show metric</div>
+    <div class="metric-tabs">
+      <button class="metric-btn active" data-metric="both">Both</button>
+      <button class="metric-btn" data-metric="wage">Wage only</button>
+      <button class="metric-btn" data-metric="egg">Egg price only</button>
+    </div>
+  </div>
+  <div class="ctrl-group" style="margin-left:auto;">
+    <div class="ctrl-label">Continent</div>
+    <div class="continent-legend" id="legendContainer"></div>
+  </div>
+</div>
+
+<div class="chart-wrap">
+  <div class="chart-scroll">
+    <canvas id="chartCanvas"></canvas>
+  </div>
+</div>
+
+<div id="tooltip"></div>
+
+<footer>
+  Sources: Egg prices — GlobalProductPrices.com (Jan 2026) | Min wages — WageIndicator, WorldPopulationReview, Deel, Playroll &amp; others (2025–2026). CBA = collective bargaining average floor. ◈ = no statutory national minimum wage.
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const DATA = [
+  {c:'Switzerland',egg:8.12,wage:4675,cont:'Europe',cba:true},
+  {c:'Norway',egg:7.18,wage:1869,cont:'Europe',cba:true},
+  {c:'Australia',egg:7.18,wage:2691,cont:'Oceania',cba:false},
+  {c:'New Zealand',egg:7.06,wage:2316,cont:'Oceania',cba:false},
+  {c:'Uruguay',egg:6.25,wage:605,cont:'Americas',cba:false},
+  {c:'Czechia',egg:5.17,wage:1095,cont:'Europe',cba:false},
+  {c:'Sweden',egg:5.04,wage:2439,cont:'Europe',cba:true},
+  {c:'Belgium',egg:5.02,wage:2503,cont:'Europe',cba:false},
+  {c:'Denmark',egg:4.91,wage:2250,cont:'Europe',cba:true},
+  {c:'Austria',egg:4.90,wage:1651,cont:'Europe',cba:true},
+  {c:'UK',egg:4.87,wage:2849,cont:'Europe',cba:false},
+  {c:'Ireland',egg:4.78,wage:2880,cont:'Europe',cba:false},
+  {c:'Hong Kong',egg:4.71,wage:530,cont:'Asia',cba:false},
+  {c:'Italy',egg:4.65,wage:1470,cont:'Europe',cba:true},
+  {c:'Germany',egg:4.62,wage:2829,cont:'Europe',cba:false},
+  {c:'USA',egg:4.62,wage:1256,cont:'Americas',cba:false},
+  {c:'Greece',egg:4.57,wage:1217,cont:'Europe',cba:false},
+  {c:'Israel',egg:4.47,wage:1680,cont:'Middle East',cba:false},
+  {c:'Ghana',egg:4.46,wage:32,cont:'Africa',cba:false},
+  {c:'France',egg:4.27,wage:2160,cont:'Europe',cba:false},
+  {c:'Slovakia',egg:4.20,wage:1084,cont:'Europe',cba:false},
+  {c:'Lithuania',egg:4.20,wage:1366,cont:'Europe',cba:false},
+  {c:'Latvia',egg:4.06,wage:924,cont:'Europe',cba:false},
+  {c:'Romania',egg:4.04,wage:942,cont:'Europe',cba:false},
+  {c:'Poland',egg:3.96,wage:1350,cont:'Europe',cba:false},
+  {c:'Chile',egg:3.96,wage:556,cont:'Americas',cba:false},
+  {c:'Finland',egg:3.82,wage:1613,cont:'Europe',cba:true},
+  {c:'Spain',egg:3.80,wage:1636,cont:'Europe',cba:false},
+  {c:'Hungary',egg:3.80,wage:993,cont:'Europe',cba:false},
+  {c:'Portugal',egg:3.61,wage:1271,cont:'Europe',cba:false},
+  {c:'Puerto Rico',egg:3.58,wage:1680,cont:'Americas',cba:false},
+  {c:'Morocco',egg:3.51,wage:333,cont:'Africa',cba:false},
+  {c:'Netherlands',egg:3.45,wage:2249,cont:'Europe',cba:false},
+  {c:'Croatia',egg:3.44,wage:1244,cont:'Europe',cba:false},
+  {c:'South Africa',egg:3.20,wage:269,cont:'Africa',cba:false},
+  {c:'Mexico',egg:3.16,wage:330,cont:'Americas',cba:false},
+  {c:'South Korea',egg:3.04,wage:1182,cont:'Asia',cba:false},
+  {c:'Japan',egg:2.96,wage:1245,cont:'Asia',cba:false},
+  {c:'Slovenia',egg:2.93,wage:1514,cont:'Europe',cba:false},
+  {c:'Canada',egg:2.89,wage:2192,cont:'Americas',cba:false},
+  {c:'Colombia',egg:2.73,wage:384,cont:'Americas',cba:false},
+  {c:'UAE',egg:2.72,wage:1634,cont:'Middle East',cba:false},
+  {c:'Ivory Coast',egg:2.71,wage:124,cont:'Africa',cba:false},
+  {c:'Singapore',egg:2.68,wage:1415,cont:'Asia',cba:true},
+  {c:'Nigeria',egg:2.66,wage:46,cont:'Africa',cba:false},
+  {c:'Malaysia',egg:2.60,wage:431,cont:'Asia',cba:false},
+  {c:'Serbia',egg:2.57,wage:882,cont:'Europe',cba:false},
+  {c:'Thailand',egg:2.54,wage:253,cont:'Asia',cba:false},
+  {c:'Jordan',egg:2.54,wage:409,cont:'Middle East',cba:false},
+  {c:'Peru',egg:2.49,wage:332,cont:'Americas',cba:false},
+  {c:'Turkey',egg:2.47,wage:759,cont:'Asia',cba:false},
+  {c:'Brazil',egg:2.42,wage:304,cont:'Americas',cba:false},
+  {c:'Tanzania',egg:2.37,wage:32,cont:'Africa',cba:false},
+  {c:'Saudi Arabia',egg:2.34,wage:1067,cont:'Middle East',cba:false},
+  {c:'Ecuador',egg:2.33,wage:482,cont:'Americas',cba:false},
+  {c:'Cameroon',egg:2.32,wage:60,cont:'Africa',cba:false},
+  {c:'China',egg:2.28,wage:392,cont:'Asia',cba:false},
+  {c:'Philippines',egg:2.23,wage:255,cont:'Asia',cba:false},
+  {c:'Russia',egg:2.21,wage:243,cont:'Europe',cba:false},
+  {c:'Kuwait',egg:2.21,wage:195,cont:'Middle East',cba:false},
+  {c:'Ukraine',egg:2.10,wage:203,cont:'Europe',cba:false},
+  {c:'Vietnam',egg:2.10,wage:212,cont:'Asia',cba:false},
+  {c:'Paraguay',egg:2.09,wage:406,cont:'Americas',cba:false},
+  {c:'Tunisia',egg:2.01,wage:149,cont:'Africa',cba:false},
+  {c:'Dominican Republic',egg:2.01,wage:270,cont:'Americas',cba:false},
+  {c:'Costa Rica',egg:1.94,wage:726,cont:'Americas',cba:false},
+  {c:'India',egg:1.89,wage:43,cont:'Asia',cba:false},
+  {c:'Kenya',egg:1.89,wage:117,cont:'Africa',cba:false},
+  {c:'Guatemala',egg:1.89,wage:513,cont:'Americas',cba:false},
+  {c:'Uganda',egg:1.83,wage:35,cont:'Africa',cba:false},
+  {c:'Bolivia',egg:1.81,wage:469,cont:'Americas',cba:false},
+  {c:'Kazakhstan',egg:1.80,wage:162,cont:'Asia',cba:false},
+  {c:'Azerbaijan',egg:1.80,wage:235,cont:'Asia',cba:false},
+  {c:'Indonesia',egg:1.79,wage:344,cont:'Asia',cba:false},
+  {c:'Zambia',egg:1.77,wage:53,cont:'Africa',cba:false},
+  {c:'Sri Lanka',egg:1.69,wage:57,cont:'Asia',cba:false},
+  {c:'Egypt',egg:1.57,wage:147,cont:'Africa',cba:false},
+  {c:'Bangladesh',egg:1.55,wage:102,cont:'Asia',cba:false},
+  {c:'Pakistan',egg:1.40,wage:130,cont:'Asia',cba:false},
+];
+
+const CONT_COLORS = {
+  'Europe':     '#5b8dee',
+  'Americas':   '#e86c4a',
+  'Asia':       '#5dc9a0',
+  'Africa':     '#e8b84a',
+  'Oceania':    '#c47de8',
+  'Middle East':'#e87a9a',
+};
+
+const CONTINENTS = Object.keys(CONT_COLORS);
+
+let sortMode = 'power';
+let metricMode = 'both';
+let hiddenConts = new Set();
+
+// Build legend
+const legendContainer = document.getElementById('legendContainer');
+CONTINENTS.forEach(cont => {
+  const item = document.createElement('div');
+  item.className = 'legend-item';
+  item.dataset.cont = cont;
+  item.innerHTML = `<span class="legend-dot" style="background:${CONT_COLORS[cont]}"></span>${cont}`;
+  item.addEventListener('click', () => {
+    if (hiddenConts.has(cont)) hiddenConts.delete(cont);
+    else hiddenConts.add(cont);
+    item.classList.toggle('muted-cont', hiddenConts.has(cont));
+    drawChart();
+  });
+  legendContainer.appendChild(item);
+});
+
+// Sort buttons
+document.querySelectorAll('.sort-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sort-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    sortMode = btn.dataset.sort;
+    drawChart();
+  });
+});
+
+document.querySelectorAll('.metric-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.metric-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    metricMode = btn.dataset.metric;
+    drawChart();
+  });
+});
+
+// Tooltip
+const tooltip = document.getElementById('tooltip');
+function showTooltip(e, d) {
+  const power = (d.wage / d.egg).toFixed(1);
+  const days = (d.egg / (d.wage / 30)).toFixed(2);
+  tooltip.innerHTML = `
+    <div class="tt-country">${d.c}${d.cba ? ' <span style="color:var(--muted);font-size:0.7rem">◈ CBA</span>' : ''}</div>
+    <div class="tt-row"><span>Continent</span><span style="color:${CONT_COLORS[d.cont]}">${d.cont}</span></div>
+    <div class="tt-row"><span>Egg price</span><span>$${d.egg.toFixed(2)}/doz</span></div>
+    <div class="tt-row"><span>Min. wage</span><span>$${d.wage.toLocaleString()}/mo</span></div>
+    <div class="tt-power">🥚 ${power} dozens/month · ${days} days/dozen</div>
+  `;
+  tooltip.classList.add('visible');
+  moveTooltip(e);
+}
+function moveTooltip(e) {
+  let x = e.clientX + 16, y = e.clientY - 60;
+  if (x + 230 > window.innerWidth) x = e.clientX - 230;
+  if (y < 10) y = e.clientY + 16;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top = y + 'px';
+}
+function hideTooltip() { tooltip.classList.remove('visible'); }
+
+// ── Chart ──────────────────────────────────────────
+const canvas = document.getElementById('chartCanvas');
+const ctx = canvas.getContext('2d');
+
+let chart = null;
+let sortedData = [];
+
+function getSortedData() {
+  let d = DATA.filter(x => !hiddenConts.has(x.cont));
+  if (sortMode === 'wage') d = [...d].sort((a,b) => b.wage - a.wage);
+  else if (sortMode === 'egg') d = [...d].sort((a,b) => b.egg - a.egg);
+  else d = [...d].sort((a,b) => (b.wage/b.egg) - (a.wage/a.egg));
+  return d;
+}
+
+function hexAlpha(hex, a) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+function drawChart() {
+  sortedData = getSortedData();
+  const n = sortedData.length;
+  const BAR_W = 26;
+  const GAP = metricMode === 'both' ? 8 : 16;
+  const GROUP = metricMode === 'both' ? BAR_W * 2 + 4 : BAR_W;
+  const totalW = n * (GROUP + GAP) + 80;
+  const H = 480;
+
+  canvas.width = Math.max(totalW, 900);
+  canvas.height = H;
+  canvas.style.width = canvas.width + 'px';
+  canvas.style.height = H + 'px';
+
+  if (chart) { chart.destroy(); chart = null; }
+
+  const labels = sortedData.map(d => d.c);
+  const wageData = sortedData.map(d => d.wage);
+  const eggData  = sortedData.map(d => d.egg);
+  const powerData = sortedData.map(d => parseFloat((d.wage / d.egg).toFixed(1)));
+  const bgWage = sortedData.map(d => CONT_COLORS[d.cont]);
+  const bgEgg  = sortedData.map(d => hexAlpha(CONT_COLORS[d.cont], 0.45));
+
+  const datasets = [];
+
+  if (metricMode === 'both' || metricMode === 'wage') {
+    const label = metricMode === 'both' ? 'Min. Wage (USD/mo)' : (sortMode === 'power' ? 'Buying power (dozens/mo)' : 'Min. Wage (USD/mo)');
+    if (sortMode === 'power' && metricMode !== 'wage') {
+      datasets.push({
+        label: 'Buying power (dozens/mo)',
+        data: powerData,
+        backgroundColor: bgWage,
+        borderColor: 'transparent',
+        borderRadius: 3,
+        borderSkipped: false,
+        yAxisID: sortMode === 'power' ? 'y' : 'y',
+        order: 1,
+      });
+    } else {
+      datasets.push({
+        label: 'Min. Wage (USD/mo)',
+        data: wageData,
+        backgroundColor: bgWage,
+        borderColor: 'transparent',
+        borderRadius: 3,
+        borderSkipped: false,
+        yAxisID: 'y',
+        order: 1,
+      });
+    }
+  }
+
+  if (metricMode === 'both' || metricMode === 'egg') {
+    datasets.push({
+      label: 'Egg price (USD/dozen)',
+      data: eggData,
+      backgroundColor: bgEgg,
+      borderColor: sortedData.map(d => CONT_COLORS[d.cont]),
+      borderWidth: 1,
+      borderRadius: 3,
+      borderSkipped: false,
+      yAxisID: 'y2',
+      order: 0,
+    });
+  }
+
+  // Axes config
+  const scales = {
+    x: {
+      grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
+      ticks: {
+        color: '#7a7362',
+        font: { family: 'DM Mono', size: 9 },
+        maxRotation: 60,
+        minRotation: 45,
+        autoSkip: false,
+        callback: (val, i) => {
+          const name = sortedData[i]?.c || '';
+          return name.length > 10 ? name.slice(0,10) + '…' : name;
+        }
+      },
+      border: { color: 'rgba(255,255,255,0.06)' }
+    }
+  };
+
+  const hasWageAxis = metricMode === 'both' || metricMode === 'wage';
+  const hasEggAxis  = metricMode === 'both' || metricMode === 'egg';
+
+  if (hasWageAxis) {
+    scales.y = {
+      position: 'left',
+      grid: { color: 'rgba(255,255,255,0.05)', drawBorder: false },
+      ticks: {
+        color: '#7a7362',
+        font: { family: 'DM Mono', size: 10 },
+        callback: v => sortMode === 'power'
+          ? v.toLocaleString() + ' doz'
+          : '$' + v.toLocaleString()
+      },
+      border: { color: 'transparent' },
+      title: {
+        display: true,
+        text: sortMode === 'power' ? 'Dozens of eggs / month' : 'Min. wage (USD/month)',
+        color: '#5b8dee',
+        font: { family: 'Syne', size: 10, weight: '700' }
+      }
+    };
+  }
+
+  if (hasEggAxis) {
+    scales.y2 = {
+      position: hasWageAxis ? 'right' : 'left',
+      grid: hasWageAxis ? { display: false } : { color: 'rgba(255,255,255,0.05)' },
+      ticks: {
+        color: '#7a7362',
+        font: { family: 'DM Mono', size: 10 },
+        callback: v => '$' + v.toFixed(2)
+      },
+      border: { color: 'transparent' },
+      title: {
+        display: true,
+        text: 'Egg price (USD/dozen)',
+        color: '#5dc9a0',
+        font: { family: 'Syne', size: 10, weight: '700' }
+      }
+    };
+  }
+
+  chart = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: false,
+      animation: { duration: 400, easing: 'easeOutQuart' },
+      interaction: { mode: 'index', intersect: false },
+      layout: { padding: { top: 20, right: 20, bottom: 10, left: 10 } },
+      scales,
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false },
+      },
+      onHover: (event, elements) => {
+        if (elements.length > 0) {
+          const i = elements[0].index;
+          showTooltip(event.native, sortedData[i]);
+        } else {
+          hideTooltip();
+        }
+      }
+    }
+  });
+
+  canvas.addEventListener('mousemove', e => {
+    const rect = canvas.getBoundingClientRect();
+    const pt = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+    const els = chart.getElementsAtEventForMode({ offsetX: pt.x, offsetY: pt.y }, 'index', { intersect: false }, false);
+    if (els.length) {
+      showTooltip(e, sortedData[els[0].index]);
+      canvas.style.cursor = 'crosshair';
+    } else {
+      hideTooltip();
+      canvas.style.cursor = 'default';
+    }
+  });
+  canvas.addEventListener('mouseleave', hideTooltip);
+}
+
+drawChart();
+</script>
+</body>
+</html></h1>
